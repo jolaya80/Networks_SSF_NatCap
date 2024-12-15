@@ -1,0 +1,120 @@
+Node 0,Node 1,Node 2,Node 3,Link type,Species,quantity,price
+Retailers,Fish market,Wholesaler,Wholesaler,Buy,snapper,40,
+Retailers,Fish market,Wholesaler,Wholesaler,Buy,lobster,,
+Retailers,Restaurant 1,Fisher,Fisher,Buy,lobster,,
+Retailers,Restaurant 1,Fisher,Fisher,Buy,conch,,9.57
+Retailers,Restaurant 1,Fisher,Fisher,Buy,fish,,
+Retailers,Restaurant 2,Fisher,Fisher,Buy,conch,20,9.57
+Retailers,Restaurant 2,Fisher,Fisher,Buy,barracuda,40,9.3
+Retailers,Restaurant 2,Fisher,Fisher,Buy,lobster,60,18
+Retailers,Restaurant 2,Fisher,Fisher,Buy,snapper,50,12
+NGO,wwf,Fisher,Fisher,Training,all,,
+NGO,wwf,Fisher,Fisher,Education,all,,
+NGO,wwf,Fisher,Fisher,Reseach,all,,
+NGO,Fragments of Hope,Fisher,Fisher,Training,all,,
+NGO,Fragments of Hope,Fisher,Fisher,Education,all,,
+NGO,Fragments of Hope,Fisher,Fisher,Governance,all,,
+NGO,Fragments of Hope,Wholesaler,Wholesaler,Training,all,,
+NGO,Fragments of Hope,Wholesaler,Wholesaler,Education,all,,
+NGO,Caye Caulker BTIA,Fisher,Fisher,Training,all,,
+NGO,Caye Caulker BTIA,Fisher,Fisher,Education,all,,
+NGO,Caye Caulker BTIA,Fisher,Fisher,Governance,all,,
+NGO,Caye Caulker BTIA,Wholesaler,Wholesaler,Training,all,,
+NGO,Caye Caulker BTIA,Wholesaler,Wholesaler,Education,all,,
+NGO,Caye Caulker BTIA,Wholesaler,Wholesaler,Governance,all,,
+NGO,Belioness,Fisher,Fisher,Training,all,,
+NGO,Belioness,Fisher,Fisher,Education,all,,
+NGO,Belioness,Fisher,Fisher,Other,all,,
+NGO,Belioness,Wholesaler,Wholesaler,Licensing,all,,
+Costumer,Customer 1,Fisher,Fisher,Buy,lobster,10,
+Costumer,Customer 1,Fisher,Fisher,Buy,conch,8,9.57
+Costumer,Customer 1,Fisher,Fisher,Buy,snapper,5,
+Costumer,Customer 2,Local markets,Retailer,Buy,lobster,,
+Costumer,Customer 2,Supermarkets,Retailer,Buy,lobster,,
+Costumer,Customer 2,Fisher,Fisher,Buy,lobster,,
+Costumer,Customer 2,Restaurants,Retailer,Buy,lobster,,
+Costumer,Customer 2,Local markets,Retailer,Buy,conch,,
+Costumer,Customer 2,Supermarkets,Retailer,Buy,conch,,
+Costumer,Customer 2,Fisher,Fisher,Buy,conch,,9.57
+Costumer,Customer 2,Restaurants,Retailer,Buy,conch,,
+Costumer,Customer 2,Local markets,Retailer,Buy,barracuda,,9.3
+Costumer,Customer 2,Supermarkets,Retailer,Buy,barracuda,,9.3
+Costumer,Customer 2,Fisher,Fisher,Buy,barracuda,,9.3
+Costumer,Customer 2,Restaurants,Retailer,Buy,barracuda,,9.3
+Costumer,Customer 2,Local markets,Retailer,Buy,snapper,,11
+Costumer,Customer 2,Supermarkets,Retailer,Buy,snapper,,
+Costumer,Customer 2,Fisher,Fisher,Buy,snapper,,
+Costumer,Customer 2,Restaurants,Retailer,Buy,snapper,,39
+Costumer,Customer 2,Local markets,Retailer,Buy,jacks,,
+Costumer,Customer 2,Supermarkets,Retailer,Buy,jacks,,
+Costumer,Customer 2,Fisher,Fisher,Buy,jacks,,
+Costumer,Customer 2,Restaurants,Retailer,Buy,jacks,,
+Costumer,Customer 3,Fisher,Fisher,Buy,conch,,9.57
+Costumer,Customer 3,Fisher,Fisher,Buy,snapper,,
+Costumer,Customer 3,Fisher,Fisher,Buy,grouper,,
+Costumer,Customer 4,Fisher,Fisher,Buy,lobster,,
+Costumer,Customer 4,Fisher,Fisher,Buy,conch,,9.57
+Costumer,Customer 4,Fisher,Fisher,Buy,snook,,
+Costumer,Customer 4,Fisher,Fisher,Buy,barracuda,,9.3
+Costumer,Customer 4,Fisher,Fisher,Buy,jacks,,
+Costumer,Customer 5,Local markets,Retailer,Buy,lobster,,
+Costumer,Customer 5,Fisher,Fisher,Buy,lobster,,
+Costumer,Customer 5,Restaurants,Retailer,Buy,lobster,,
+Costumer,Customer 5,Local markets,Retailer,Buy,conch,,
+Costumer,Customer 5,Fisher,Fisher,Buy,conch,,9.57
+Costumer,Customer 5,Restaurants,Retailer,Buy,conch,,
+Costumer,Customer 5,Local markets,Retailer,Buy,snapper,,11
+Costumer,Customer 5,Fisher,Fisher,Buy,snapper,,
+Costumer,Customer 5,Restaurants,Retailer,Buy,snapper,,39
+Costumer,Customer 6,Local markets,Retailer,Buy,conch,,
+Costumer,Customer 6,Restaurants,Retailer,Buy,conch,,
+Costumer,Customer 6,Local markets,Retailer,Buy,snapper,,11
+Costumer,Customer 6,Restaurants,Retailer,Buy,snapper,,39
+Fisher,Fisher 1,Tourist,Tourist,share,lobster,,
+Fisher,Fisher 1,Tourist,Tourist,share,conch,,
+Fisher,Fisher 1,Tourist,Tourist,share,fish,,
+Fisher,Fisher 2,Cooperative Belize City,Coop,Sell,conch,,
+Fisher,Fisher 2,Restaurants,Retailer,Sell,conch,,
+Fisher,Fisher 3,Restaurants,Retailer,Sell,lobster,,25-30
+Fisher,Fisher 3,Restaurants,Retailer,Sell,conch,,10
+Fisher,Fisher 3,Restaurants,Retailer,Sell,barracuda,,8
+Fisher,Fisher 3,Restaurants,Retailer,Sell,snapper,,12
+Fisher,Fisher 4,Cooperative Northern,Coop,Sell,lobster,,15
+Fisher,Fisher 4,Cooperative Northern,Coop,Sell,conch,,8
+Fisher,Fisher 4,Restaurants,Retailer,Sell,barracuda,,12
+Fisher,Fisher 4,Restaurants,Retailer,Sell,snapper,,15
+Fisher,Fisher 5,Restaurants,Retailer,Sell,lobster,,25-30
+Fisher,Fisher 5,Restaurants,Retailer,Sell,conch,,15
+Fisher,Fisher 5,Restaurants,Retailer,Sell,barracuda,,10
+Fisher,Fisher 5,Restaurants,Retailer,Sell,snapper,,20
+Fisher,Fisher 5,Restaurants,Retailer,Sell,grouper,,20
+Fisher,Fisher 5,Restaurants,Retailer,Sell,jacks,,10
+Fisher,Fisher 6,Cooperative,Coop,Sell,lobster,,25
+Fisher,Fisher 6,Restaurants,Retailer,Sell,lobster,,25
+Fisher,Fisher 6,Cooperative,Coop,Sell,conch,,12
+Fisher,Fisher 6,Restaurants,Retailer,Sell,conch,,12
+Fisher,Fisher 6,Restaurants,Retailer,Sell,barracuda,,12
+Fisher,Fisher 6,Restaurants,Retailer,Sell,snapper,,15
+Fisher,Fisher 6,Restaurants,Retailer,Sell,grouper,,15
+Fisher,Fisher 6,Restaurants,Retailer,Sell,jacks,,10
+Fisher,Fisher 8,Fisher 8,Fisher,self consumption,barracuda,,
+Fisher,Fisher 8,Fisher 8,Fisher,self consumption,snapper,,
+Fisher,Fisher 9,Fisher 9,Fisher,self consumption,lobster,,
+Fisher,Fisher 9,Fisher 9,Fisher,self consumption,conch,,
+Fisher,Fisher 9,Fisher 9,Fisher,self consumption,snook,,
+Fisher,Fisher 9,Fisher 9,Fisher,self consumption,barracuda,,
+Fisher,Fisher 9,Fisher 9,Fisher,self consumption,snapper,,
+Fisher,Fisher 11,Restaurants,Retailer,Sell,barracuda,,10
+Fisher,Fisher 11,Restaurants,Retailer,Sell,snapper,,12
+Fisher,Fisher 13,Restaurants,Retailer,Sell,lobster,,30
+Fisher,Fisher 13,Restaurants,Retailer,Sell,conch,,10
+Fisher,Fisher 14,Cooperative,Coop,Sell,lobster,,26
+Fisher,Fisher 15,Cooperative,Coop,Sell,lobster,,25
+Fisher,Fisher 15,Restaurants,Retailer,Sell,lobster,,25
+Fisher,Fisher 15,Cooperative,Coop,Sell,conch,,8
+Fisher,Fisher 15,Restaurants,Retailer,Sell,conch,,8
+Fisher,Fisher 15,Restaurants,Retailer,Sell,snook,,8
+Fisher,Fisher 15,Restaurants,Retailer,Sell,barracuda,,8
+Fisher,Fisher 15,Restaurants,Retailer,Sell,snapper,,8
+Fisher,Fisher 15,Restaurants,Retailer,Sell,grouper,,10
+Fisher,Fisher 15,Restaurants,Retailer,Sell,jacks,,8
