@@ -1,0 +1,52 @@
+## Average catch of lobster during season considering different catch rates between months
+
+# catch reported by months
+capture_high_months <- (200, 400)  # average catch in the 2 first months (rango)
+capture_low_months <- (50, 100)   # average catch in the other months (rango)
+
+# number of months of the lobster season
+months_high <- 2  # July and Aug
+months_low <- 6   # Sep to Feb
+
+# calculate average catch per trip
+average_high <- sum(capture_high_months) / 2  # average of the month with high catch
+average_low <- sum(capture_low_months) / 2    # average of the month with low catch
+
+# Weighted average considering months
+total_months <- months_high + months_low
+average_per_trip <- (average_high * months_high + average_low * months_low) / total_months
+average_per_trip
+
+
+### Average profit when a week income range was provided by fisher
+# Datos proporcionados
+trips_per_month = 30                 # Viajes de pesca mensuales promedio
+weekly_income_range = (200, 300)     # Ganancias semanales (rango)
+
+# Número de semanas en un mes promedio
+weeks_per_month = 4
+
+# Promedio de ganancias semanales
+average_weekly_income = sum(weekly_income_range) / 2
+
+# Ganancia total mensual promedio
+monthly_income = average_weekly_income * weeks_per_month
+
+# Ganancia estimada por viaje de pesca
+income_per_trip = monthly_income / trips_per_month
+income_per_trip
+
+## calculo de profit per trip cuando proveen un % como ganancia (e.g. gano el 25% del viaje)
+# Datos proporcionados
+trips_per_month = 4                       # Viajes de pesca al mes
+average_weight_per_trip = 27.5            # Libras de langosta capturadas por viaje
+average_price_per_pound = 27.5            # Precio promedio por libra de langosta
+profit_percentage = 25 / 100              # Ganancia como porcentaje de ingresos
+
+# Calcular ingresos por viaje de pesca
+income_per_trip = average_weight_per_trip * average_price_per_pound
+
+# Calcular ganancia por viaje de pesca
+profit_per_trip = income_per_trip * profit_percentage
+profit_per_trip
+

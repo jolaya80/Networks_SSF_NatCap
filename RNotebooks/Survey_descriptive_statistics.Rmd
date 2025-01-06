@@ -1,0 +1,203 @@
+---
+title: "Survey_descriptive_statistics"
+output: html_notebook
+---
+
+This workflow describe the results from the surveys during the workshops in Belize during Oct 2024 
+
+```{r}
+library(readxl)
+library(ggplot2)
+library(dplyr)
+library(stringr)
+library(tidyr)
+```
+
+### Import data
+```{r}
+Fishery_survey <- read_excel("~/Documents/GitHub_projects/Networks_SSF_NatCap/data/processed/survey_answers.xlsx", sheet = "Fishers")
+```
+
+## Most common fishing gear used Lobster fishery
+
+```{r}
+# Filter data for Caye_Caulker
+Caye_Caulker_data <- Fishery_survey %>%
+  filter(Site == "Caye_Calker" & Specie == "Lobster")
+
+# Filter data for Placencia
+Placencia_data <- Fishery_survey %>%
+  filter(Site != "Caye_Calker" & Specie == "Lobster")
+
+# Filter data for all sites
+All_data <- Fishery_survey %>%
+  filter(Specie == "Lobster")
+
+# Handle missing Fishing_gear_used values 
+All_data$Fishing_gear_used[is.na(All_data$Fishing_gear_used)] <- "Unknown"
+Caye_Caulker_data$Fishing_gear_used[is.na(Caye_Caulker_data$Fishing_gear_used)] <- "Unknown"
+Placencia_data$Fishing_gear_used[is.na(Placencia_data$Fishing_gear_used)] <- "Unknown"
+
+# Count occurrences of each category for Caye_Caulker
+caye_counts <- Caye_Caulker_data %>%
+  count(Fishing_gear_used, name = "Count")
+
+# Count occurrences of each category for Placencia
+Placencia_counts <- Placencia_data %>%
+  count(Fishing_gear_used, name = "Count")
+
+# Count occurences in total
+All_counts <- All_data %>%
+  count(Fishing_gear_used, name = "Count")
+
+# Plot for Caye_Caulker
+plot_caye <- ggplot(caye_counts, aes(x = Count, y = reorder(Fishing_gear_used, Count))) +
+  geom_bar(stat = "identity", fill = "grey") +
+  labs(title = "Fishing Gears Used for Lobster in Caye Caulker", x = "Count", y = "Fishing Gear") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(angle = 0, hjust = 1), legend.position = "none")
+
+# Plot for Placencia
+plot_Placencia <- ggplot(Placencia_counts, aes(x = Count, y = reorder(Fishing_gear_used, Count))) +
+  geom_bar(stat = "identity", fill = "grey") +
+  labs(title = "Fishing Gears Used for Lobster in Placencia", x = "Count", y = "Fishing Gear") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(angle = 0, hjust = 1), legend.position = "none")
+
+# Plot for all
+plot_all <- ggplot(All_counts, aes(x = Count, y = reorder(Fishing_gear_used, Count))) +
+  geom_bar(stat = "identity", fill = "grey") +
+  labs(title = "Fishing Gears Used in the Lobster fishery", x = "Count", y = "Fishing Gear") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(angle = 0, hjust = 1), legend.position = "none")
+
+# Display plots
+print(plot_caye)
+print(plot_Placencia)
+print(plot_all)
+
+```
+
+### Own their vessel and gear
+```{r}
+# Filter data for Lobster
+Lobster_data <- Fishery_survey %>%
+  filter(Specie == "Lobster")
+
+# Check if the dataset is empty
+if (nrow(Lobster_data) == 0) {
+  stop("No data found for Specie == 'Lobster'. Verify the data.")
+}
+
+# Function to prepare pie chart data
+prepare_pie_data <- function(data, site_name = "All Sites") {
+  data %>%
+    filter(Site == site_name | site_name == "All Sites") %>%
+    group_by(Own_vessel_gear) %>%
+    summarize(Count = n(), .groups = "drop") %>%
+    mutate(Percentage = Count / sum(Count) * 100)
+}
+
+# Prepare data for each site and all sites
+caye_data <- prepare_pie_data(Lobster_data, "Caye_Calker")
+placencia_data <- prepare_pie_data(Lobster_data, "Placencia")
+all_sites_data <- prepare_pie_data(Lobster_data)
+
+# Combine all datasets for plotting
+pie_data <- bind_rows(caye_data, placencia_data, all_sites_data)
+
+# Function to create a pie chart
+create_pie_chart_with_percentages <- function(data, site_name) {
+  ggplot(data, aes(x = "", y = Count, fill = Own_vessel_gear)) +
+    geom_bar(stat = "identity", width = 1) +
+    coord_polar("y", start = 0) +
+    geom_text(aes(label = paste0(round(Percentage, 1), "%")), 
+              position = position_stack(vjust = 0.5), size = 4, color = "white") +
+    labs(title = paste("Ownership of Vessel and Gear:", site_name),
+         fill = "Own Vessel & Gear",
+         x = NULL, y = NULL) +
+    theme_void() +
+    theme(legend.position = "right")
+}
+
+# Create pie charts for each site
+plot_caye <- create_pie_chart(caye_data, "Caye Caulker")
+plot_placencia <- create_pie_chart(placencia_data, "Placencia")
+plot_all_sites <- create_pie_chart(all_sites_data, "All Sites")
+
+# Display the plots
+print(plot_caye)
+print(plot_placencia)
+print(plot_all_sites)
+```
+
+### Number of fishing trips per month
+
+```{r}
+# 1. Box Plot: Distribution by Site
+box_plot <- ggplot(Lobster_data, aes(x = Site, y = Fishing_trips_per_month_season, fill = Site)) +
+  geom_boxplot() +
+  labs(title = "Distribution of Fishing Trips per Month by Site",
+       x = "Site", y = "Fishing Trips per Month") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+# Display the plot
+print(box_plot)
+
+# Create the histogram
+histogram_plot <- ggplot(Lobster_data, aes(x = Fishing_trips_per_month_season)) +
+  geom_histogram(binwidth = 5, color = "black", fill = "skyblue", alpha = 0.7) +
+  facet_wrap(~ Site) +
+  labs(
+    title = "Histogram of Fishing Trips per Month by Site",
+    x = "Fishing Trips per Month",
+    y = "Count"
+  ) +
+  theme_minimal()
+
+# Display the histogram
+print(histogram_plot)
+```
+
+### average number of fishing trips (multifishery participation)
+```{r}
+# Inspect and clean data
+Fishery_survey <- Fishery_survey %>%
+  mutate(Specie = str_trim(Specie), ID = str_trim(ID))
+
+# Remove rows with NA values in Fishing_trips_per_month_season
+Fishery_clean <- Fishery_survey %>%
+  filter(!is.na(Fishing_trips_per_month_season), Specie %in% c("Lobster", "Conch", "Finfish"))
+
+# Step 1: Summarize trips per fisher across fisheries
+fisher_summary <- Fishery_clean %>%
+  group_by(ID, Specie) %>%
+  summarize(Total_Trips = sum(Fishing_trips_per_month_season), .groups = "drop") %>%
+  pivot_wider(names_from = Specie, values_from = Total_Trips, values_fill = 0)
+
+# Step 2: Count active fisheries per fisher
+fisher_summary <- fisher_summary %>%
+  mutate(
+    Active_Fisheries = rowSums(select(., Lobster, Conch, Finfish) > 0),
+    Total_Days = Lobster + Conch + Finfish
+  )
+
+# Step 3: Calculate average days for one, two, or three fisheries
+average_days <- fisher_summary %>%
+  group_by(Active_Fisheries) %>%
+  summarize(Average_Days = mean(Total_Days), .groups = "drop")
+
+# Step 4: Count fishers in each category
+fisher_counts <- fisher_summary %>%
+  count(Active_Fisheries)
+
+# Output Results
+print("Average Number of Days by Active Fisheries:")
+print(average_days)
+
+print("Number of Fishers by Active Fisheries:")
+print(fisher_counts)
+```
+
+
