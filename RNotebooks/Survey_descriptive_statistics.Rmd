@@ -15,68 +15,212 @@ library(tidyr)
 
 ### Import data
 ```{r}
-Fishery_survey <- read_excel("~/Documents/GitHub_projects/Networks_SSF_NatCap/data/processed/survey_answers.xlsx", sheet = "Fishers")
+Fishery_survey <- read_excel("~/Documents/GitHub_projects/Networks_SSF_NatCap/data/processed/survey_answers_fishers.xlsx", sheet = "Fishers")
 ```
 
-## Most common fishing gear used Lobster fishery
-
+## define output folders
 ```{r}
-# Filter data for Caye_Caulker
-Caye_Caulker_data <- Fishery_survey %>%
-  filter(Site == "Caye_Calker" & Specie == "Lobster")
+# Define the folder path
+Fig_output_folder <- "C:/Users/jolaya/Documents/GitHub_projects/Networks_SSF_NatCap/results/figures"
 
-# Filter data for Placencia
-Placencia_data <- Fishery_survey %>%
-  filter(Site != "Caye_Calker" & Specie == "Lobster")
+Table_output_folder <- "C:/Users/jolaya/Documents/GitHub_projects/Networks_SSF_NatCap/results/tables"
 
-# Filter data for all sites
-All_data <- Fishery_survey %>%
+```
+
+## How many fishers participated in the worshops
+```{r}
+fisher_count <- Fishery_survey %>%
+  group_by(Site, Gender) %>%              # Group by Site
+  summarise(
+    Unique_Fishers = n_distinct(ID)  # Count unique IDs per site
+  )
+
+# View the result
+print(fisher_count)
+
+# Export using base R
+write.csv(fisher_count, file = file.path(Table_output_folder, "fisher_count_gender.csv"), row.names = FALSE)
+
+```
+## ethnicity
+```{r}
+
+# Summarize the unique number of fishers by Site and Ethnicity
+unique_ethnicity_summary <- Fishery_survey %>%
+  group_by(Site, Ethnicity) %>%         # Group by Site and Ethnicity
+  summarise(
+    Unique_Fishers = n_distinct(ID)     # Count unique fishers using their ID
+  ) %>%
+  arrange(Site, Ethnicity)              # Arrange the results for readability
+
+
+# Reshape into a pivot table
+ethnicity_pivot_table <- unique_ethnicity_summary %>%
+  pivot_wider(
+    names_from = Site,          # Columns: Site
+    values_from = Unique_Fishers, # Values: Unique_Fishers count
+    values_fill = 0             # Fill missing values with 0
+  )
+
+# View the pivot table
+print(ethnicity_pivot_table)
+
+# Export using base R
+write.csv(ethnicity_pivot_table, file = file.path(Table_output_folder, "ethnicity_pivot_table.csv"), row.names = FALSE)
+```
+
+## age groups
+```{r}
+# Calculate the number of unique fishers in each age group for each site
+age_group_counts <- aggregate(
+  ID ~ Site + Age_group, 
+  data = Fishery_survey, 
+  FUN = function(x) { length(unique(x)) } 
+)
+
+# Calculate the total number of unique fishers per site
+total_fishers_per_site <- aggregate(
+  ID ~ Site, 
+  data = Fishery_survey, 
+  FUN = function(x) { length(unique(x)) } 
+)
+
+# Merge the data frames
+merged_age_data <- merge(age_group_counts, total_fishers_per_site, by = "Site")
+
+# Calculate the proportion of each age group within each site
+merged_age_data$proportion <- merged_age_data$ID.x / merged_age_data$ID.y
+
+# Rename columns for clarity
+colnames(merged_age_data) <- c("Site", "Age_group", "Fisher_count_in_age_group", "Total_fishers", "Proportion")
+
+# Print the results
+print(merged_age_data) 
+
+
+# Export using base R
+write.csv(merged_age_data, file = file.path(Table_output_folder, "Age_group_participation.csv"), row.names = FALSE)
+```
+
+## multy fishery
+```{r}
+# Group by ID and count unique fisheries per fisher
+fishery_counts <- Fishery_survey %>%
+  group_by(ID) %>%
+  summarise(fisheries_count = n_distinct(Specie)) %>%
+  ungroup()
+
+# Categorize fishers based on the number of fisheries they participate in
+Multi_fishery_summary <- fishery_counts %>%
+  mutate(category = case_when(
+    fisheries_count == 1 ~ "One fishery",
+    fisheries_count == 2 ~ "Two fisheries",
+    fisheries_count >= 3 ~ "All fisheries"
+  )) %>%
+  count(category, name = "fisher_count") %>%
+  mutate(proportion = fisher_count / sum(fisher_count))
+
+# View the summary
+print(Multi_fishery_summary)
+
+# Export using base R
+write.csv(Multi_fishery_summary, file = file.path(Table_output_folder, "Multi_fishery_summary.csv"), row.names = FALSE)
+```
+
+## Most common fishing gear used
+```{r}
+# Filter data for lobster
+Lobster_data <- Fishery_survey %>%
   filter(Specie == "Lobster")
 
+# Filter data for conch
+Conch_data <- Fishery_survey %>%
+  filter(Specie == "Conch")
+
+# Filter data for finfish
+Finfish_data <- Fishery_survey %>%
+  filter(Specie == "Finfish")
+
 # Handle missing Fishing_gear_used values 
-All_data$Fishing_gear_used[is.na(All_data$Fishing_gear_used)] <- "Unknown"
-Caye_Caulker_data$Fishing_gear_used[is.na(Caye_Caulker_data$Fishing_gear_used)] <- "Unknown"
-Placencia_data$Fishing_gear_used[is.na(Placencia_data$Fishing_gear_used)] <- "Unknown"
+Lobster_data$Fishing_gear_used[is.na(Lobster_data$Fishing_gear_used)] <- "Unknown"
+Conch_data$Fishing_gear_used[is.na(Conch_data$Fishing_gear_used)] <- "Unknown"
+Finfish_data$Fishing_gear_used[is.na(Finfish_data$Fishing_gear_used)] <- "Unknown"
 
-# Count occurrences of each category for Caye_Caulker
-caye_counts <- Caye_Caulker_data %>%
+# Count occurrences of each category for lobster
+lobster_counts <- Lobster_data %>%
   count(Fishing_gear_used, name = "Count")
 
-# Count occurrences of each category for Placencia
-Placencia_counts <- Placencia_data %>%
+# Count occurrences of each category for conch
+conch_counts <- Conch_data %>%
   count(Fishing_gear_used, name = "Count")
 
-# Count occurences in total
-All_counts <- All_data %>%
+# Count occurences of each category for finfish
+fish_counts <- Finfish_data %>%
   count(Fishing_gear_used, name = "Count")
 
 # Plot for Caye_Caulker
-plot_caye <- ggplot(caye_counts, aes(x = Count, y = reorder(Fishing_gear_used, Count))) +
-  geom_bar(stat = "identity", fill = "grey") +
-  labs(title = "Fishing Gears Used for Lobster in Caye Caulker", x = "Count", y = "Fishing Gear") +
-  theme_minimal() +
-  theme(axis.text.y = element_text(angle = 0, hjust = 1), legend.position = "none")
-
-# Plot for Placencia
-plot_Placencia <- ggplot(Placencia_counts, aes(x = Count, y = reorder(Fishing_gear_used, Count))) +
-  geom_bar(stat = "identity", fill = "grey") +
-  labs(title = "Fishing Gears Used for Lobster in Placencia", x = "Count", y = "Fishing Gear") +
-  theme_minimal() +
-  theme(axis.text.y = element_text(angle = 0, hjust = 1), legend.position = "none")
-
-# Plot for all
-plot_all <- ggplot(All_counts, aes(x = Count, y = reorder(Fishing_gear_used, Count))) +
+plot_lobster <- ggplot(lobster_counts, aes(x = Count, y = reorder(Fishing_gear_used, Count))) +
   geom_bar(stat = "identity", fill = "grey") +
   labs(title = "Fishing Gears Used in the Lobster fishery", x = "Count", y = "Fishing Gear") +
   theme_minimal() +
   theme(axis.text.y = element_text(angle = 0, hjust = 1), legend.position = "none")
 
+# Plot for Placencia
+plot_conch <- ggplot(conch_counts, aes(x = Count, y = reorder(Fishing_gear_used, Count))) +
+  geom_bar(stat = "identity", fill = "grey") +
+  labs(title = "Fishing Gears Used in the conch fishery", x = "Count", y = "Fishing Gear") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(angle = 0, hjust = 1), legend.position = "none")
+
+# Plot for all
+plot_fish <- ggplot(fish_counts, aes(x = Count, y = reorder(Fishing_gear_used, Count))) +
+  geom_bar(stat = "identity", fill = "grey") +
+  labs(title = "Fishing Gears Used in the finfish fishery", x = "Count", y = "Fishing Gear") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(angle = 0, hjust = 1), legend.position = "none")
+
 # Display plots
-print(plot_caye)
-print(plot_Placencia)
-print(plot_all)
+print(plot_lobster)
+print(plot_conch)
+print(plot_fish)
+
+# Save the plots
+ggsave(filename = file.path(Fig_output_folder, "Fishing_gears_lobster.png"), plot = plot_lobster, width = 6,  height = 6)
+ggsave(filename = file.path(Fig_output_folder, "Fishing_gears_conch.png"), plot = plot_conch, width = 6,  height = 6)
+ggsave(filename = file.path(Fig_output_folder, "Fishing_gears_fish.png"), plot = plot_fish,width = 6,  height = 6)
+
+### pie chart for other representation option
+# Crear el gráfico de torta usando ggplot2
+grafico <- ggplot(lobster_counts, aes(x="", y=Count, fill=Fishing_gear_used)) +
+  geom_bar(stat="identity", width=1, color="white") +
+  coord_polar("y", start=0) +
+  theme_void() + 
+  labs(title="Percentaje use of Fishing Gear") +
+  scale_fill_brewer(palette="Pastel1")
+
+# Mostrar el gráfico
+print(grafico)
+
 
 ```
+
+### Fishing zones
+Determine the number of fishers fishing in each fishing zone, grouped by Site
+
+```{r}
+# Clean and expand the Fishing_zone column
+zone_analysis <- Fishery_survey %>%
+  filter(Specie == "Lobster") %>%
+  filter(!is.na(Fishing_zone)) %>%  # Remove rows with NA in Fishing_zone
+  separate_rows(Fishing_zone, sep = " and ") %>%  # Split multiple zones into separate rows
+  group_by(Fishing_zone) %>%
+  summarise(unique_fishers = n_distinct(ID), .groups = "drop") %>%  # Count unique fishers per zone per site
+  arrange(Fishing_zone)  # Arrange results for clarity
+
+# View the result
+print(zone_analysis)
+```
+
 
 ### Own their vessel and gear
 ```{r}
@@ -132,72 +276,502 @@ print(plot_all_sites)
 ```
 
 ### Number of fishing trips per month
-
 ```{r}
-# 1. Box Plot: Distribution by Site
-box_plot <- ggplot(Lobster_data, aes(x = Site, y = Fishing_trips_per_month_season, fill = Site)) +
+# Calculate average number of fishing trips by Specie
+average_trips <- Fishery_survey %>%
+  group_by(Site, Specie) %>%
+  summarise(
+    average_monthly_effort = mean(Fishing_trips_per_month_season, na.rm = TRUE), 
+    sd_montlhy_effort = sd(Fishing_trips_per_month_season, na.rm = TRUE)
+  )
+
+# View the result
+print(average_trips)
+
+# Export to CSV
+write.csv(average_trips, file = file.path(Table_output_folder, "average_fishing_trips_by_specie.csv"), row.names = FALSE)
+
+# Trends in the number of trips per month per site
+monthly_effort <- ggplot(Fishery_survey, aes(x = Site, y = Fishing_trips_per_month_season, fill = Specie)) +
   geom_boxplot() +
-  labs(title = "Distribution of Fishing Trips per Month by Site",
-       x = "Site", y = "Fishing Trips per Month") +
   theme_minimal() +
-  theme(legend.position = "none")
+  labs(title = "Trends in the number of trips per month per site", y = "Monthly fishing trips", x = "Site")
 
-# Display the plot
-print(box_plot)
+plot(monthly_effort)
 
-# Create the histogram
-histogram_plot <- ggplot(Lobster_data, aes(x = Fishing_trips_per_month_season)) +
-  geom_histogram(binwidth = 5, color = "black", fill = "skyblue", alpha = 0.7) +
-  facet_wrap(~ Site) +
+ggsave(filename = file.path(Fig_output_folder, "Monthly_effort_specie.png"), 
+       plot = monthly_effort)
+```
+## Monthly catch
+```{r}
+# Calculate average number of fishing trips by Specie
+average_catch <- Fishery_survey %>%
+  group_by(Site, Specie) %>%
+  summarise(
+    average_catch_trip = mean(Average_catch_per_trip, na.rm = TRUE), 
+    sd_catch_trip = sd(Average_catch_per_trip, na.rm = TRUE)
+  )
+
+# View the result
+print(average_catch)
+
+# Export to CSV
+write.csv(average_catch, file = file.path(Table_output_folder, "average_catch.csv"), row.names = FALSE)
+
+# Trends in the average catch per fishing trips
+monthly_catch <- ggplot(Fishery_survey, aes(x = Site, y = Average_catch_per_trip, fill = Specie)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Average catch per fishing trip by site and especie", y = "Average catch (lb)", x = "Site")
+
+plot(monthly_catch)
+
+ggsave(filename = file.path(Fig_output_folder, "Monthly_catch.png"), 
+       plot = monthly_catch)
+```
+
+## Average sell price
+```{r}
+# Calculate average selling price by Specie
+average_sell <- Fishery_survey %>%
+  group_by(Site, Specie) %>%
+  summarise(
+    average_sell_price = mean(Selling_price, na.rm = TRUE), 
+    sd_sell_price = sd(Selling_price, na.rm = TRUE)
+  )
+
+# View the result
+print(average_sell)
+
+# Export to CSV
+write.csv(average_sell, file = file.path(Table_output_folder, "average_sell.csv"), row.names = FALSE)
+
+# Trends in the average catch per fishing trips
+plot_average_sell <- ggplot(Fishery_survey, aes(x = Site, y = Selling_price, fill = Specie)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Average selling price by site and especie", y = "Selling price (BZ)", x = "Site")
+
+plot(plot_average_sell)
+
+ggsave(filename = file.path(Fig_output_folder, "plot_average_sell.png"), 
+       plot = plot_average_sell)
+```
+
+### average profit from fishing trips
+```{r}
+# Calculate average profit fro fishing trips
+average_profit <- Fishery_survey %>%
+  group_by(Site, Specie) %>%
+  summarise(
+    average_profit = mean(Profit_from_trip, na.rm = TRUE), 
+    sd_profit = sd(Profit_from_trip, na.rm = TRUE)
+  )
+
+# View the result
+print(average_profit)
+
+# Export to CSV
+write.csv(average_profit, file = file.path(Table_output_folder, "average_profit.csv"), row.names = FALSE)
+
+# Trends in the average catch per fishing trips
+plot_average_profit <- ggplot(Fishery_survey, aes(x = Site, y = Profit_from_trip, fill = Specie)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Average profit from fishing trips", y = "Profit (BZ)", x = "Site")
+
+plot(plot_average_profit)
+
+ggsave(filename = file.path(Fig_output_folder, "plot_average_profit.png"), 
+       plot = plot_average_profit)
+```
+
+### Buyers
+```{r}
+buyers <- Fishery_survey %>%
+  group_by(Site,To_whom_sell_catch) %>%
+  summarize(frequency= n(), .groups = 'drop')
+
+print(buyers)
+
+# 🔹 Filtrar los NA antes de graficar
+buyers_clean <- buyers %>% filter(!is.na(To_whom_sell_catch))
+
+# 🔹 Crear el gráfico sin NA y con subtítulo en la leyenda
+plot_buyers <- ggplot(buyers_clean, aes(x = Site, y = frequency, fill = To_whom_sell_catch)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.9)) +
   labs(
-    title = "Histogram of Fishing Trips per Month by Site",
-    x = "Fishing Trips per Month",
-    y = "Count"
+    title = "Buyer by Locality", 
+    x = NULL, 
+    y = "Frequency",
+    fill = "Who Buys the Catch"  # Cambia el subtítulo de la leyenda
   ) +
   theme_minimal()
 
-# Display the histogram
-print(histogram_plot)
+plot(plot_buyers)
+
+ggsave(filename = file.path(Fig_output_folder, "plot_buyers.png"), 
+       plot = plot_buyers)
 ```
 
-### average number of fishing trips (multifishery participation)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Estimation of Fishers value added
+
+We follow a production base approach.
+
+is measured as the value of output minus the value of all intermediate inputs.
+
+the value of output = the total sale of catch at ex-vessel price (the price that fishers report as selling price) 
+
+the value of intermediate inputs = costs such as fuel, ice, and vessel maintenance (reported by fishers as fishing trip cost). 
+
+The difference, which includes income for the fishers and crew and profit for the vessel owner, is the value-added to the economy (Grafeld et al., 2017).
+
+### estimation of total catch per season (year)
 ```{r}
-# Inspect and clean data
+# Define the season months for each species
 Fishery_survey <- Fishery_survey %>%
-  mutate(Specie = str_trim(Specie), ID = str_trim(ID))
-
-# Remove rows with NA values in Fishing_trips_per_month_season
-Fishery_clean <- Fishery_survey %>%
-  filter(!is.na(Fishing_trips_per_month_season), Specie %in% c("Lobster", "Conch", "Finfish"))
-
-# Step 1: Summarize trips per fisher across fisheries
-fisher_summary <- Fishery_clean %>%
-  group_by(ID, Specie) %>%
-  summarize(Total_Trips = sum(Fishing_trips_per_month_season), .groups = "drop") %>%
-  pivot_wider(names_from = Specie, values_from = Total_Trips, values_fill = 0)
-
-# Step 2: Count active fisheries per fisher
-fisher_summary <- fisher_summary %>%
   mutate(
-    Active_Fisheries = rowSums(select(., Lobster, Conch, Finfish) > 0),
-    Total_Days = Lobster + Conch + Finfish
+    season_months = case_when(
+      Specie == "Lobster" ~ 8,
+      Specie == "Conch" ~ 8,
+      Specie == "Finfish" ~ 12,
+      TRUE ~ NA_real_  # Handle cases where Specie doesn't match
+    )
   )
 
-# Step 3: Calculate average days for one, two, or three fisheries
-average_days <- fisher_summary %>%
-  group_by(Active_Fisheries) %>%
-  summarize(Average_Days = mean(Total_Days), .groups = "drop")
+# Calculate total catch per season
+catch_survey <- Fishery_survey %>%
+  mutate(
+    monthly_catch = Fishing_trips_per_month_season * Average_catch_per_trip,
+    total_catch = monthly_catch * season_months, # Total catch for the season
+    Total_Fishing_Trips = Fishing_trips_per_month_season * season_months #total effort season
+  ) %>% 
+  dplyr::select(Site, Specie, ID, monthly_catch, total_catch, Selling_price, Total_Fishing_Trips, Fishing_trip_cost)  # Select relevant columns for review
 
-# Step 4: Count fishers in each category
-fisher_counts <- fisher_summary %>%
-  count(Active_Fisheries)
+# Summarize total catch by species
+catch_survey_summary <- catch_survey %>%
+  group_by(Site, Specie) %>%
+  summarise(
+    avg_catch_season = mean(total_catch, na.rm = TRUE), 
+    Avg_Selling_Price = mean(Selling_price, na.rm = TRUE),
+    Avg_effort = mean(Total_Fishing_Trips, na.rm = TRUE),
+    Avg_trip_cost = mean(Fishing_trip_cost, na.rm = TRUE)
+  )
 
-# Output Results
-print("Average Number of Days by Active Fisheries:")
-print(average_days)
+# View the result
+print(catch_survey_summary)
 
-print("Number of Fishers by Active Fisheries:")
-print(fisher_counts)
+# Export using base R
+write.csv(catch_survey_summary, file = file.path(Table_output_folder, "Seasonal_catch_summary.csv"), row.names = FALSE)
 ```
+
+Estimate the total output and intermediate inputs in both places by multiply those averages by the total number of licensed fishers (data from Updated_list_for_WWF_Sept_2024).
+
+Caye Caulker: 197 fishers
+
+Placencia: 151 fishers
+
+```{r}
+# Multiply Average_Catch based on Site
+Total_catch <- catch_survey_summary %>%
+  mutate(Total_Catch = ifelse(Site == "Caye_Caulker", avg_catch_season * 197, 
+                                ifelse(Site == "Placencia", avg_catch_season * 151)),
+         Total_effort = ifelse(Site == "Caye_Caulker", Avg_effort * 197, 
+                                ifelse(Site == "Placencia", Avg_effort * 151)
+                               ),
+         Total_output = Total_Catch * Avg_Selling_Price,
+         Total_input = Total_effort * Avg_trip_cost,
+         Value_added = Total_output - Total_input
+         ) %>% 
+  dplyr::select(Site, Specie, Total_Catch, Total_output, Total_input, Value_added)
+
+# Display the updated data frame
+print(Total_catch)
+```
+
+```{r}
+Total_catch_BZ <- catch_survey_summary %>%
+  mutate(Total_Catch =  avg_catch_season * 3460,
+         Total_effort = Avg_effort * 3460,
+         Total_output = Total_Catch * Avg_Selling_Price,
+         Total_input = Total_effort * Avg_trip_cost,
+         Value_added = Total_output - Total_input
+         ) %>% 
+  dplyr::select(Specie, Total_Catch, Total_output, Total_input, Value_added)
+
+# Display the updated data frame
+print(Total_catch_BZ)
+```
+
+## make tables
+```{r}
+table1 <- flextable(age_groups) %>%
+  set_caption("Table 1: Age group of participants during the workshops") %>%
+  theme_vanilla() %>%
+  autofit() %>%
+  color(i = 1, color = "white", part = "header") %>%
+  bold(part = "header") %>%
+  bg(i = 1, bg = "grey", part = "header") %>%
+  border_outer() %>%
+  border_inner()
+
+## table 2
+# Engagement in multispecific fisheries by participants
+table2 <- flextable(Multi_fishery_summary) %>%
+  set_caption("Table 2: Engagement in multispecific fisheries by participants") %>%
+  theme_vanilla() %>%
+  autofit() %>%
+  color(i = 1, color = "white", part = "header") %>%
+  bold(part = "header") %>%
+  bg(i = 1, bg = "grey", part = "header") %>%
+  border_outer() %>%
+  border_inner()
+
+
+
+## table 3
+tabla3 <- flextable(lobster_counts) %>%
+  set_caption("Table 3: Fishing Gear used in Lobster Fishery") %>%
+  theme_vanilla() %>%
+  autofit() %>%
+  color(i = 1, color = "white", part = "header") %>%
+  bold(part = "header") %>%
+  bg(i = 1, bg = "grey", part = "header") %>%
+  border_outer() %>%
+  border_inner()
+
+# table 4
+tabla4 <- flextable(fish_counts) %>%
+  set_caption("Table 4: Fishing Gear used in Finsish Fishery") %>%
+  theme_vanilla() %>%
+  autofit() %>%
+  color(i = 1, color = "white", part = "header") %>%
+  bold(part = "header") %>%
+  bg(i = 1, bg = "grey", part = "header") %>%
+  border_outer() %>%
+  border_inner()
+
+# tabla5
+tabla5 <- flextable(conch_counts) %>%
+  set_caption("Table 5: Fishing Gear used in Queen Conch Fishery") %>%
+  theme_vanilla() %>%
+  autofit() %>%
+  color(i = 1, color = "white", part = "header") %>%
+  bold(part = "header") %>%
+  bg(i = 1, bg = "grey", part = "header") %>%
+  border_outer() %>%
+  border_inner()
+
+# tabla6
+tabla6 <- flextable(average_trips) %>%
+  set_caption("Table 6: Montlhy Fishing Effort") %>%
+  theme_vanilla() %>%
+  autofit() %>%
+  color(i = 1, color = "white", part = "header") %>%
+  bold(part = "header") %>%
+  bg(i = 1, bg = "grey", part = "header") %>%
+  border_outer() %>%
+  border_inner()
+
+# tabla7
+tabla7 <- flextable(average_catch) %>%
+  set_caption("Table 7: Average catch in the three fisheries") %>%
+  theme_vanilla() %>%
+  autofit() %>%
+  color(i = 1, color = "white", part = "header") %>%
+  bold(part = "header") %>%
+  bg(i = 1, bg = "grey", part = "header") %>%
+  border_outer() %>%
+  border_inner()
+
+# tabla8
+tabla8 <- flextable(average_sell) %>%
+  set_caption("Table 8: Average primary landing selling price") %>%
+  theme_vanilla() %>%
+  autofit() %>%
+  color(i = 1, color = "white", part = "header") %>%
+  bold(part = "header") %>%
+  bg(i = 1, bg = "grey", part = "header") %>%
+  border_outer() %>%
+  border_inner()
+
+# tabla9
+tabla9 <- flextable(average_profit) %>%
+  set_caption("Table 9: Average profit from fishing trips") %>%
+  theme_vanilla() %>%
+  autofit() %>%
+  color(i = 1, color = "white", part = "header") %>%
+  bold(part = "header") %>%
+  bg(i = 1, bg = "grey", part = "header") %>%
+  border_outer() %>%
+  border_inner()
+
+# Crear el documento de Word con ambas tablas
+doc <- read_docx() %>% 
+  body_add_flextable(table1) %>%
+  body_add_par("") %>%  # Espacio entre tablas
+  body_add_flextable(table2)  %>%
+  body_add_par("") %>%  # Espacio entre tablas
+  body_add_flextable(tabla3) %>%
+  body_add_par("") %>%  # Espacio entre tablas
+  body_add_flextable(tabla4) %>%
+  body_add_par("") %>%  # Espacio entre tablas
+  body_add_flextable(tabla5) %>%
+  body_add_par("") %>%  # Espacio entre tablas
+  body_add_flextable(tabla6) %>%
+  body_add_par("") %>%  # Espacio entre tablas
+  body_add_flextable(tabla7) %>%
+  body_add_par("") %>%  # Espacio entre tablas
+  body_add_flextable(tabla8) %>%
+  body_add_par("") %>%  # Espacio entre tablas
+  body_add_flextable(tabla9) 
+print(doc, target = "Tabla_Artes_Pesca.docx")
+
+```
+
+RETAILERS
+
+```{r}
+# make table
+Retailes_survey <- read_csv("~/Documents/GitHub_projects/Networks_SSF_NatCap/data/processed/Retailes_survey.csv")
+
+```
+
+```{r}
+# Transformar los datos para hacer una tabla más ordenada
+df <- data.frame(
+  Species = c("Lobster", "Conch", "Snook", "Barracuda", "Snapper", "Grouper", "Wrasses", "Jacks"),
+  Purchase_Quantity = c(NA, 10, NA, NA, 20, 30, NA, 10),
+  Purchase_Price = c(28, 9.5, 10, 7, 10, 10, 10, NA),
+  Selling_Price = c(29.3, 10.0, 10.7, 6.0, 8.7, 8.7, NA, 6.7)
+)
+
+# 🔹 Crear la tabla con flextable
+tabla <- df %>%
+  flextable() %>%
+  set_caption("📊 Table: Purchase and Selling Prices of Fish Species") %>%
+  theme_vanilla() %>%
+  autofit() %>%
+  bold(part = "header") %>%
+  bg(i = 1, bg = "grey", part = "header") %>%
+  color(i = 1, color = "white", part = "header") %>%
+  border_outer() %>%
+  border_inner()
+
+# 🔹 Exportar la tabla a un documento Word
+doc <- read_docx() %>%
+  body_add_par("📘 Report on Fish Species Prices", style = "heading 1") %>%
+  body_add_flextable(tabla)
+
+print(doc, target = "Fish_Species_Prices.docx")
+```
+
+
+```{r}
+df <- data.frame(
+  Species = c("Lobster", "Conch", "Snook", "Barracuda", "Snapper", "Grouper", "Wrasses", "Jacks"),
+  Consumers_Placencia = c(7, 8, 3, 9, 11, 6, 0, 6),
+  Avg_Consumption_Placencia = c(6, 4, 10, 14, 10, 14, 0, 12),
+  Consumers_Caye_Caulker = c(4, 6, 1, 2, 6, 1, 0, 2),
+  Avg_Consumption_Caye_Caulker = c(3.8, 2.3, 1.0, 2.0, 2.9, 8.0, 0.0, 2.0)
+)
+
+# 🔹 Crear la tabla con flextable
+tabla <- df %>%
+  flextable() %>%
+  set_caption("📊 Comparison of Seafood Consumption in Placencia and Caye Caulker") %>%
+  theme_vanilla() %>%
+  autofit() %>%
+  bold(part = "header") %>%
+  bg(i = 1, bg = "grey", part = "header") %>%
+  color(i = 1, color = "white", part = "header") %>%
+  border_outer() %>%
+  border_inner()
+
+# 🔹 Exportar la tabla a un documento Word
+doc <- read_docx() %>%
+  body_add_par("📘 Seafood Consumption Report", style = "heading 1") %>%
+  body_add_flextable(tabla)
+
+print(doc, target = "Seafood_Consumption_Report.docx")
+```
+
+```{r}
+df <- data.frame(
+  Institution = c(
+    "WWF (Caye Caulker & Placencia)", 
+    "Fragments of Hope", 
+    "Caye Caulker BTIAC", 
+    "Belioness", 
+    "Humana People to People", 
+    "Southern Environmental Association", 
+    "Toledo Institute for Development and Environment"
+  ),
+  Primary_Role = c(
+    "Community Engagement & Conservation Planning", 
+    "Site Coordinator", 
+    "Chairperson", 
+    "Vice Chair", 
+    "Grant Proposal Writing & Project Management", 
+    "Executive Director & Board Chairman", 
+    "Protected Area Manager"
+  ),
+  Impact_on_Fishers_Income = c(
+    "Training in alternative livelihoods, income diversification", 
+    "Training fishers in monitoring & conservation", 
+    "Training, quality control, best practices", 
+    "Lionfish population monitoring", 
+    "Sustainable development training, funding for alternative livelihoods", 
+    "Capacity building & best practices training", 
+    "Managed access programs for traditional fishers"
+  ),
+  Measurement_of_Success = c(
+    "Surveys, economic impact tracking", 
+    "Not quantified", 
+    "Number of fishers participating in programs", 
+    "Changes in lionfish abundance", 
+    "Improved community economic conditions", 
+    "Tracking fisher compliance with regulations", 
+    "Expansion into tourism-related activities"
+  )
+)
+
+# 🔹 Create the flextable with formatting
+tabla <- df %>%
+  flextable() %>%
+  set_caption("Strategies of Institutions to Improve Fishers' Livelihoods") %>%
+  theme_vanilla() %>%
+  autofit() %>%
+  bold(part = "header") %>%
+  bg(i = 1, bg = "grey", part = "header") %>%
+  color(i = 1, color = "white", part = "header") %>%
+  border_outer() %>%
+  border_inner()
+
+# 🔹 Export the table to a Word document
+doc <- read_docx() %>%
+  body_add_par("Report on Institutional Strategies for Fisheries", style = "heading 1") %>%
+  body_add_flextable(tabla)
+
+print(doc, target = "Institutional_Strategies_Fisheries.docx")
+```
+
+
+
 
 

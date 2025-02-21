@@ -120,9 +120,8 @@ This analysis focuses on the actors from a market perspective, stressing the imp
 
 Steps: 
 1. Estimated the total fishery weight and landed value
-- Estimated catch per fishing trip/sp * # of licenced fishers in Placencia and Caye Caulker
-- Fishbrain total catch per specie
-- landing value from survey
+
+- Estimated catch per fishing trip/sp * num of licenced fishers in Placencia and Caye Caulker
 
 
 ### 1. Estimated the total fishery weight and landed value
@@ -139,17 +138,12 @@ Fishery_clean <- Fishery_survey %>%
 seasonal_catch <- Fishery_clean %>%
   mutate(
     Monthly_Catch = Average_catch_per_trip * Fishing_trips_per_month_season,
-    Total_Catch_Season = Monthly_Catch * 8,
-    Total_output =  Total_Catch_Season * Selling_price,
+    Catch_Season = Monthly_Catch * 8,
+    Total_output_BZ =  Catch_Season * Selling_price,
     Total_effort_season = Fishing_trips_per_month_season * 8,
-    Intermediate_inputs = Total_effort_season * Fishing_trip_cost
-  ) %>%
-  group_by(ID, Site, Specie) %>%
-  summarize(
-    Total_Catch_Season = sum(Total_Catch_Season, na.rm = TRUE),
-    Value_added = Total_output - Intermediate_inputs,
-    .groups = "drop"
-  )
+    Intermediate_inputs = Total_effort_season * Fishing_trip_cost,
+    Net_profit = Total_output_BZ - Intermediate_inputs
+  ) 
 
 # Display the results
 print(seasonal_catch)
@@ -160,8 +154,10 @@ print(seasonal_catch)
 catch_stats <- seasonal_catch %>%
   group_by(Site, Specie) %>%
   summarize(
-    Average_Catch = mean(Total_Catch_Season, na.rm = TRUE),
-    SD_Catch = sd(Total_Catch_Season, na.rm = TRUE),
+    Average_Catch = mean(Catch_Season, na.rm = TRUE),
+    SD_Catch = sd(Catch_Season, na.rm = TRUE),
+    Average_Profit = mean(Net_profit, na.rm = TRUE),
+    SD_Profit = sd(Net_profit, na.rm = TRUE)
   )
 
 # Display the results
@@ -169,8 +165,11 @@ print(catch_stats)
 ```
 
 Estimate the total catch in both places by multiply the average catch per fisher during the season by the total number of lisenced fishers (data from Updated list for WWF Sept 2024).
+
 Caye Caulker: 197 fishers
+
 Placencia: 151 fishers
+
 ```{r}
 # Multiply Average_Catch based on Site
 Total_catch <- catch_stats %>%
